@@ -2,30 +2,37 @@
 
 var YouTube = require('youtube-node');
 
-function getVideoId(url) {
-    var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    var match = url.match(regExp);
+module.exports = function(youtubeApiKey) {
+    var youTube = new YouTube();
+    youTube.setKey(youtubeApiKey);
 
-    if (match && match[2].length == 11) {
-        return match[2];
-    } else {
-        return null;
-    }
-}
+    function getVideoId(url) {
+        var regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        var match = url.match(regExp);
 
-exports = function(data) {
-    return new Promise(function(resolve, reject) {
-        var youTube = new YouTube();
-
-        if (data.videoId) {
-            youTube.setKey(data.youtubeApiKey);
-            youTube.getById(data.videoId, function(error, result) {
-                if (error) return reject(error);
-
-                resolve(result);
-            });
+        if (match && match[2].length == 11) {
+            return match[2];
         } else {
-            resolve(null);
+            return null;
         }
-    });
+    }
+
+
+    function getId(url) {
+        return new Promise(function(resolve, reject) {
+            var id = getVideoId(url);
+            if (id) {
+                youTube.getById(id, function(error, result) {
+                    if (error) return reject(error);
+
+                    resolve(result);
+                });
+            } else {
+                resolve(null);
+            }
+        });
+
+    }
+
+    return getId;
 }
